@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query, Path, HTTPException, status
+from fastapi import FastAPI, Query, Path, HTTPException, status, Body
 from pydantic import BaseModel, Field
 from typing import List, Optional , Dict
 from database import cars
@@ -34,4 +34,15 @@ async def  get_car_data_by_id(id: int = Path(...,ge=0,lt=100000)):
         raise HTTPException( status_code=status.HTTP_404_NOT_FOUND, detail= "could not find the carby id" )
     return car
 
+@app.post("/cars", status_code = status.HTTP_201_CREATED)
+async def add_cars(body_cars: List[Car], min_id: Optional[int] = Body(0)):
+    if len(body_cars) < 1:
+        raise HTTPException(status_code= status.HTTP_400_BAD_REQUEST , detail="No cars to add.")
+    min_id = len(cars.values()) + min_id
+    for car in body_cars:
+        while cars.get(min_id):
+            min_id += 1
+        cars[min_id] = car
+        min_id += 1
 
+    
